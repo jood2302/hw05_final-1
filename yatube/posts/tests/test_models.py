@@ -27,13 +27,13 @@ class ModelsStrTests(TestCase):
             author=cls.test_user
         )
         cls.test_comment = Comment.objects.create(
-            post = cls.test_post,
-            author = cls.test_commentator,
-            text = 'Новый комментарий для тестового поста'
+            post=cls.test_post,
+            author=cls.test_commentator,
+            text='Новый комментарий для тестового поста'
         )
         cls.test_follow = Follow.objects.create(
-            user = cls.test_commentator,
-            author = cls.test_user
+            user=cls.test_commentator,
+            author=cls.test_user
         )
 
         cls.test_model_response = (

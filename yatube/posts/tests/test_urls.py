@@ -68,7 +68,6 @@ class UrlAbsPathTests(TestCase):
     def test_get_404_status_with_undefined_url(self):
         resp = self.client.get('not_defined_url_test_404')
         self.assertEqual(resp.status_code, HTTPStatus.NOT_FOUND)
-        
 
     def test_get_abs_urls_with_200(self):
         """Проверка абсолютных путей гостевым и авторизованным клиентами."""
@@ -157,16 +156,16 @@ class UrlAbsPathTests(TestCase):
 
             (path_follow,
              self.client, 'guest',
-             f'{login_url}{next_path_follow}'),            
-            
+             f'{login_url}{next_path_follow}'),
+
             (path_unfollow,
              self.client, 'guest',
              f'{login_url}{next_path_unfollow}'),
 
-             (path_follow,
+            (path_follow,
              user_client, 'user',
-             reverse_profile),            
-            
+             reverse_profile),
+
             (path_unfollow,
              user_client, 'user',
              reverse_profile),
@@ -208,7 +207,8 @@ class UrlAbsPathTests(TestCase):
             ('post', f'/{username}/{post_id}/', (username, post_id)),
             ('post_edit', f'/{username}/{post_id}/edit/', (username, post_id)),
             ('follow_index', '/follow/', None),
-            ('add_comment', f'/{username}/{post_id}/comment', (username, post_id)),
+            ('add_comment', f'/{username}/{post_id}/comment',
+             (username, post_id)),
             ('profile_follow', f'/{username}/follow/', (username,)),
             ('profile_unfollow', f'/{username}/unfollow/', (username,)),
         )

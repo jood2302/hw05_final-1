@@ -1,4 +1,3 @@
-from typing import ClassVar
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -103,7 +102,7 @@ class ViewsContextTests(TestCase):
             author=cls.user_test,
             text='test_post_text',
             group=cls.group_test
-        )        
+        )
 
     def page_queryset_post_test(self, context, find_object):
         post_in_db = ViewsContextTests.test_post
@@ -136,7 +135,7 @@ class ViewsContextTests(TestCase):
         )
         response = authorized_follower.get(reverse('follow_index'))
         self.page_queryset_post_test(response.context, 'page')
-    
+
     def test_index_put_in_render_right_context(self):
         """Проверка, что "index" выдаёт верный контекст в шаблон.
 
@@ -212,7 +211,6 @@ class ViewsContextTests(TestCase):
             )
         )
         self.page_queryset_post_test(response.context, 'post')
-
 
     def test_new_post_put_in_render_right_context(self):
         """Проверка, что "new_post" выдаёт в шаблон верный контекст.
@@ -396,8 +394,7 @@ class FollowingRightWorkTest(TestCase):
         self.assertEqual(Follow.objects.count(), 1)
         follows = Follow.objects.filter(
             author=FollowingRightWorkTest.author,
-            user=FollowingRightWorkTest.follower
-            )
+            user=FollowingRightWorkTest.follower)
         self.assertEqual(len(follows), 1)
 
     def test_delete_follow_from_follower_to_author(self):
@@ -420,13 +417,5 @@ class FollowingRightWorkTest(TestCase):
         self.assertEqual(Follow.objects.count(), 0)
         follows = Follow.objects.filter(
             author=FollowingRightWorkTest.author,
-            user=FollowingRightWorkTest.follower
-            )
+            user=FollowingRightWorkTest.follower)
         self.assertFalse(follows)
-
-        
-
-
-
-
-

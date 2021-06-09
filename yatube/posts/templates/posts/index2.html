@@ -6,19 +6,11 @@
   <div class="container">
     {% include "includes/menu.html" with index=True %}    
     {% load cache %}
-    {% if request.user.is_authenticated %}
-      {% cache 20 user_index_page using key page_number %}
-        {% for post in page %}
-          {% include "includes/post_item.html" with post=post %}
-        {% endfor %}
-      {% endcache %}
-    {% else %}
-      {% cache 3000 guest_index_page anonymous %}
+    
       {% for post in page %}
-          {% include "includes/post_item.html" with post=post %}
-        {% endfor %}
-      {% endcache %}
-    {% endif %}
+        {% include "includes/post_item.html" with post=post %}
+      {% endfor %}
+    
   </div>
   
   {% include "includes/paginator.html" with items=page paginator=paginator %}

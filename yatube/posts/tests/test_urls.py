@@ -20,10 +20,12 @@ class UrlAbsPathTests(TestCase):
     "/group/<slug:slug>/"                   g
     "/<str:username>/"                      g
     "/<str:username>/<int:post_id>/"        g
-    "/<str:username>/<int:post_id>/edit/"   u-a     g->/login
-                                                    u->/username/post_id/
-    "/new/"                                 u       g->/login
+    "/<str:username>/<int:post_id>/edit/"   u-a     g-> "/login"
+                                                    u-> "/username/post_id/"
+    "/new/"                                 u       g-> "/login"
     "/not_defined_url_test_404"             g
+    "/follow/"                              u       g-> "/login"
+
     Методика тестов:
     - первый набор тестов GET запросов по абсолютному пути без редиректов.
     Клиенты гостевой и авторизованный
@@ -84,6 +86,7 @@ class UrlAbsPathTests(TestCase):
             (f'/{user_no_post}/', self.client),
             (f'/{user_with_post}/{post_id}/', self.client),
             ('/new/', user_client),
+            ('/follow/', user_client),
         )
 
         for abs_url, client in url_client:
@@ -94,9 +97,15 @@ class UrlAbsPathTests(TestCase):
     def test_get_abs_url_redirects(self):
         """Проверка редиректов по абсолютному пути для разных клиентов.
 
-        "/<str:username>/<int:post_id>/edit/"   guest -> /login
-                                                user -> /username/post_id/
-        "/new/"                                 guest -> /login
+        "/<str:username>/<int:post_id>/edit/"   guest -> "/login"
+                                                user -> "/username/post_id/"
+        "/new/"                                 guest -> "/login"
+        "/<str:username>/<int:post_id>/comment"     g-> "/login"
+                                                    u-> "/username/post_id/"
+        "/<str:username>/follow/"                   g-> "/login"
+                                                    u-> "/username/"
+        "/<str:username>/unfollow/"                 g-> "/login"
+                                                    u-> "/username/"
         """
         user_client = self.authorized_reader
         user_with_post = UrlAbsPathTests.user_with_post.username
@@ -114,6 +123,17 @@ class UrlAbsPathTests(TestCase):
 
         reverse_post = reverse('post', args=(user_with_post, post_id))
 
+        path_comment = f'/{user_with_post}/{post_id}/comment'
+        next_path_comment = f'?next={path_comment}'
+
+        path_follow = f'/{user_with_post}/follow/'
+        next_path_follow = f'?next={path_follow}'
+
+        path_unfollow = f'/{user_with_post}/unfollow/'
+        next_path_unfollow = f'?next={path_unfollow}'
+
+        reverse_profile = reverse('profile', args=(user_with_post,))
+
         url_client_redirect = (
             (path_new,
              self.client, 'guest',
@@ -126,6 +146,30 @@ class UrlAbsPathTests(TestCase):
             (path_user_post_edit,
              user_client, 'user',
              reverse_post),
+
+            (path_comment,
+             self.client, 'guest',
+             f'{login_url}{next_path_comment}'),
+
+            (path_comment,
+             user_client, 'user',
+             reverse_post),
+
+            (path_follow,
+             self.client, 'guest',
+             f'{login_url}{next_path_follow}'),            
+            
+            (path_unfollow,
+             self.client, 'guest',
+             f'{login_url}{next_path_unfollow}'),
+
+             (path_follow,
+             user_client, 'user',
+             reverse_profile),            
+            
+            (path_unfollow,
+             user_client, 'user',
+             reverse_profile),
         )
 
         for abs_url, client, client_type, redirect in url_client_redirect:
@@ -144,6 +188,10 @@ class UrlAbsPathTests(TestCase):
         'profile'           '<str:username>/'
         'post'              '<str:username>/<int:post_id>/'
         'post_edit'         '<str:username>/<int:post_id>/edit/'
+        'follow_index'      'follow/'
+        'add_comment'       '<str:username>/<int:post_id>/comment'
+        'profile_follow'    '<str:username>/follow/'
+        'profile_unfollow'  '<str:username>/unfollow/'
         """
         username = UrlAbsPathTests.user_with_post.username
         post_id = UrlAbsPathTests.test_post.id
@@ -159,6 +207,10 @@ class UrlAbsPathTests(TestCase):
             ('profile', f'/{username}/', (username,)),
             ('post', f'/{username}/{post_id}/', (username, post_id)),
             ('post_edit', f'/{username}/{post_id}/edit/', (username, post_id)),
+            ('follow_index', '/follow/', None),
+            ('add_comment', f'/{username}/{post_id}/comment', (username, post_id)),
+            ('profile_follow', f'/{username}/follow/', (username,)),
+            ('profile_unfollow', f'/{username}/unfollow/', (username,)),
         )
 
         for name, url, args in name_url_args:

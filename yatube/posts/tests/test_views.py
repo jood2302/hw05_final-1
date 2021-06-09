@@ -1,10 +1,11 @@
+from typing import ClassVar
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Group, Post
 from posts.forms import PostForm
+from posts.models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -20,6 +21,7 @@ class URLPathTemplatesTests(TestCase):
     '<str:username>/'                       posts/profile.html
     '<str:username>/<int:post_id>/'         posts/post.html
     '<str:username>/<int:post_id>/edit/'    posts/new_post.html
+    '<str:username>/<int:post_id>/comment/' posts/follow.html
     """
 
     @classmethod
@@ -60,6 +62,7 @@ class URLPathTemplatesTests(TestCase):
             ('profile', (user_author.username,), 'profile.html'),
             ('post', (user_author.username, post.id), 'post.html'),
             ('post_edit', (user_author.username, post.id), 'new_post.html'),
+            ('follow_index', None, 'follow.html'),
         )
 
         for func_name, args, template_name in url_template_name:
@@ -82,6 +85,7 @@ class ViewsContextTests(TestCase):
     'post'              post: Post, author: Post.author
     'new_post'          form: PostForm, edit_flag: bool
     'post_edit'         form: PostForm, edit_flag: bool
+    'follow_index'      page: QuerySet[Post]
     """
 
     @classmethod
@@ -99,7 +103,7 @@ class ViewsContextTests(TestCase):
             author=cls.user_test,
             text='test_post_text',
             group=cls.group_test
-        )
+        )        
 
     def page_queryset_post_test(self, context, find_object):
         post_in_db = ViewsContextTests.test_post
@@ -116,6 +120,23 @@ class ViewsContextTests(TestCase):
         self.assertEqual(post_in_context.group, post_in_db.group)
         self.assertEqual(post_in_context.pub_date, post_in_db.pub_date)
 
+    def test_index_follow_put_in_render_right_context(self):
+        """Проверка, что "index_follow" выдаёт верный контекст в шаблон.
+
+        Должно передаваться в шаблон page: QuerySet[Post].
+        """
+        follower = User.objects.create(
+            username='test Follower'
+        )
+        authorized_follower = Client()
+        authorized_follower.force_login(follower)
+        Follow.objects.create(
+            user=follower,
+            author=ViewsContextTests.user_test
+        )
+        response = authorized_follower.get(reverse('follow_index'))
+        self.page_queryset_post_test(response.context, 'page')
+    
     def test_index_put_in_render_right_context(self):
         """Проверка, что "index" выдаёт верный контекст в шаблон.
 
@@ -198,9 +219,9 @@ class ViewsContextTests(TestCase):
 
         В шаблон должны передаваться form: PostForm, edit_flag: bool.
         """
-        authorize_writer = Client()
-        authorize_writer.force_login(ViewsContextTests.user_test)
-        response = authorize_writer.get(reverse('new_post'))
+        authorized_writer = Client()
+        authorized_writer.force_login(ViewsContextTests.user_test)
+        response = authorized_writer.get(reverse('new_post'))
         self.assertIn('edit_flag', response.context)
         self.assertIs(response.context['edit_flag'], False)
         self.assertIn('form', response.context)
@@ -211,11 +232,11 @@ class ViewsContextTests(TestCase):
 
         В шаблон должны передаваться form: PostForm, edit_flag: bool.
         """
-        authorize_writer = Client()
-        authorize_writer.force_login(ViewsContextTests.user_test)
+        authorized_writer = Client()
+        authorized_writer.force_login(ViewsContextTests.user_test)
         post_for_edit = ViewsContextTests.test_post
 
-        response = authorize_writer.get(
+        response = authorized_writer.get(
             reverse(
                 'post_edit',
                 args=(post_for_edit.author, post_for_edit.id)
@@ -335,3 +356,77 @@ class PaginatorWorkRight(TestCase):
             len(obj_list),
             Post.objects.count() - settings.PAGINATOR_DEFAULT_SIZE
         )
+
+
+class FollowingRightWorkTest(TestCase):
+    """Проверка работы системы подписок."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.author = User.objects.create(
+            username='Автор, на которого все подписываются'
+        )
+        cls.follower = User.objects.create(
+            username='Подписчик на автора'
+        )
+
+    def test_create_follow_from_follower_to_author(self):
+        """Проверка создания подписки."""
+        self.assertEqual(Follow.objects.count(), 0)
+        client_follower = Client()
+        client_follower.force_login(FollowingRightWorkTest.follower)
+
+        client_follower.get(
+            reverse(
+                'profile_follow',
+                args=(FollowingRightWorkTest.author.username,)
+            )
+        )
+        self.assertEqual(Follow.objects.count(), 1)
+        follow_obj = Follow.objects.first()
+        self.assertEqual(follow_obj.author, FollowingRightWorkTest.author)
+        self.assertEqual(follow_obj.user, FollowingRightWorkTest.follower)
+        client_follower.get(
+            reverse(
+                'profile_follow',
+                args=(FollowingRightWorkTest.author.username,)
+            )
+        )
+        self.assertEqual(Follow.objects.count(), 1)
+        follows = Follow.objects.filter(
+            author=FollowingRightWorkTest.author,
+            user=FollowingRightWorkTest.follower
+            )
+        self.assertEqual(len(follows), 1)
+
+    def test_delete_follow_from_follower_to_author(self):
+        """Проверка удаления подписки."""
+        self.assertEqual(Follow.objects.count(), 0)
+        Follow.objects.create(
+            author=FollowingRightWorkTest.author,
+            user=FollowingRightWorkTest.follower
+        )
+        self.assertEqual(Follow.objects.count(), 1)
+        client_follower = Client()
+        client_follower.force_login(FollowingRightWorkTest.follower)
+
+        client_follower.get(
+            reverse(
+                'profile_unfollow',
+                args=(FollowingRightWorkTest.author.username,)
+            )
+        )
+        self.assertEqual(Follow.objects.count(), 0)
+        follows = Follow.objects.filter(
+            author=FollowingRightWorkTest.author,
+            user=FollowingRightWorkTest.follower
+            )
+        self.assertFalse(follows)
+
+        
+
+
+
+
+

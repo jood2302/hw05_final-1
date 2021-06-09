@@ -128,7 +128,8 @@ class TestCreateEditPostForm(TestCase):
         test_post = Post.objects.create(
             text='Test post text',
             author=TestCreateEditPostForm.user_author,
-            group=group
+            group=group,
+            image=None
         )
         test_post_id = test_post.id
         posts_count_before = Post.objects.count()
@@ -137,9 +138,22 @@ class TestCreateEditPostForm(TestCase):
             slug='anover-test-group'
         )
 
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00'
+            b'\x01\x00\x00\x01\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00'
+            b'\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         form_data = {
             'text': 'Тестовый пост для проверки формы',
             'group': another_group.id,
+            'image': uploaded,
         }
 
         response = authorized_editor.post(
@@ -158,6 +172,7 @@ class TestCreateEditPostForm(TestCase):
         self.assertEqual(Post.objects.count(), posts_count_before)
         self.assertNotEqual(db_post.text, form_data['text'])
         self.assertNotEqual(db_post.group, form_data['group'])
+        self.assertNotEqual(db_post.image, form_data['image'])
 
     def test_edit_post_user_author(self):
         """Проверка, что автор поста корректно редактирует пост.

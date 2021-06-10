@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-from django.views.decorators.cache import cache_page
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator

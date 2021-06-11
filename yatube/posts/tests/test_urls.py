@@ -99,7 +99,7 @@ class UrlAbsPathTests(TestCase):
         "/<str:username>/<int:post_id>/edit/"   guest -> "/login"
                                                 user -> "/username/post_id/"
         "/new/"                                 guest -> "/login"
-        "/<str:username>/<int:post_id>/comment"     g-> "/login"
+        "/<str:username>/<int:post_id>/comment/"    g-> "/login"
                                                     u-> "/username/post_id/"
         "/<str:username>/follow/"                   g-> "/login"
                                                     u-> "/username/"
@@ -122,7 +122,7 @@ class UrlAbsPathTests(TestCase):
 
         reverse_post = reverse('post', args=(user_with_post, post_id))
 
-        path_comment = f'/{user_with_post}/{post_id}/comment'
+        path_comment = f'/{user_with_post}/{post_id}/comment/'
         next_path_comment = f'?next={path_comment}'
 
         path_follow = f'/{user_with_post}/follow/'
@@ -188,7 +188,7 @@ class UrlAbsPathTests(TestCase):
         'post'              '<str:username>/<int:post_id>/'
         'post_edit'         '<str:username>/<int:post_id>/edit/'
         'follow_index'      'follow/'
-        'add_comment'       '<str:username>/<int:post_id>/comment'
+        'add_comment'       '<str:username>/<int:post_id>/comment/'
         'profile_follow'    '<str:username>/follow/'
         'profile_unfollow'  '<str:username>/unfollow/'
         """
@@ -207,7 +207,7 @@ class UrlAbsPathTests(TestCase):
             ('post', f'/{username}/{post_id}/', (username, post_id)),
             ('post_edit', f'/{username}/{post_id}/edit/', (username, post_id)),
             ('follow_index', '/follow/', None),
-            ('add_comment', f'/{username}/{post_id}/comment',
+            ('add_comment', f'/{username}/{post_id}/comment/',
              (username, post_id)),
             ('profile_follow', f'/{username}/follow/', (username,)),
             ('profile_unfollow', f'/{username}/unfollow/', (username,)),

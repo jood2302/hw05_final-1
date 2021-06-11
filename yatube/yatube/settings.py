@@ -20,10 +20,16 @@ SECRET_KEY = '5$%wy)^64z_*^ys)$k@l*2dl#t0s(6zpg-gf3bai)mqy03)nxt'
 DEBUG = True
 
 ALLOWED_HOSTS: List[str] = [
+    'www.coherentus.pythonanywhere.com',
+    'coherentus.pythonanywhere.com',
     'localhost',
     '127.0.0.1',
     '[::1]',
     'testserver',
+]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 INSTALLED_APPS = [
@@ -37,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sorl.thumbnail',
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -47,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'yatube.urls'

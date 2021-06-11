@@ -35,5 +35,4 @@ if settings.DEBUG:
                           document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
-    urlpatterns += path('500/', handler500, name='debug_500')
-    urlpatterns += path('404/', handler404, name='debug_404')
+

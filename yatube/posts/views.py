@@ -3,7 +3,9 @@ from http import HTTPStatus
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
 
 from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post, User
@@ -37,7 +39,7 @@ def pagination(request, objects):
     return page
 
 
-# @cache_page(15)
+@cache_page(15)
 def index(request):
     post_list = Post.objects.all()
     page = pagination(request, post_list)
@@ -101,7 +103,6 @@ def post_view(request, username, post_id):
     form = CommentForm(request.POST or None)
     return render(request, 'posts/post.html',
                   {'post': post,
-                   # 'author': post.author.username,
                    'form': form,
                    'comments': post.comments.all()})
 
@@ -154,7 +155,11 @@ def profile_follow(request, username):
     if ((request.user != profile_user)
         and (not Follow.objects.filter(
             user=request.user, author=profile_user).exists())):
-        Follow.objects.create(user=request.user, author=profile_user)
+        try:
+            Follow.objects.create(user=request.user, author=profile_user)
+        except IntegrityError:
+            return redirect('handler500')
+
     return redirect('profile', username=username)
 
 

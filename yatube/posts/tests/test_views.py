@@ -1,4 +1,5 @@
 import time
+from typing import ValuesView
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -425,6 +426,12 @@ class FollowingRightWorkTest(TestCase):
             user=FollowingRightWorkTest.follower)
         self.assertFalse(follows)
 
+    def test_not_create_double_follow_in_view(self):
+        """Проверка невозможности повторной подписки из view."""
+
+    def test_db_defence_from_double_follow_create(self):
+        """Проверка защиты БД от повторной подписки."""
+
 
 class CacheSubSystemTest(TestCase):
     """Проверка работы кеширования."""
@@ -445,7 +452,7 @@ class CacheSubSystemTest(TestCase):
         - создание поста, проверка, что он появится на странице "/"
         не ранее времени, заданного в настройке кеша в шаблоне. (20 сек)
         """
-        
+
         # cache1 = caches['user_index_page']
         # print(cache1)
         print(locmem._caches)
@@ -463,8 +470,8 @@ class CacheSubSystemTest(TestCase):
         dict = locmem._caches['unique-someobject']
         print(len(dict))
         for cached in dict:
-            print(cached)            
-            
+            print(cached)
+
         # print(cache.get(':1:template.cache.user_index_page'))
         page = response.context['page']
         self.assertEqual(len(page), 1)
@@ -476,16 +483,17 @@ class CacheSubSystemTest(TestCase):
         )
         for i in range(23):
             time.sleep(1)
-            print('sleep ', i+1)
+            print('sleep ', i + 1)
             response = user.get('/')
-            page = response.context['page']
+            # page = response.context['page']
+            print(type(response.context))
+            for key, value in response.context:
+                print(key, value)
 
             # print('response.context', response.context)
             # page = response.context['page']
             print('\n after second get', len(page))
-            
-            
-        
+
         self.assertEqual(response.context['page'][0].text, first_post.text)
         time.sleep(16)
         response = user.get('/')

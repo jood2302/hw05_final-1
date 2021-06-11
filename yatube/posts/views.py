@@ -3,7 +3,6 @@ from http import HTTPStatus
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
@@ -152,21 +151,15 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     profile_user = get_object_or_404(User, username=username)
-    if ((request.user != profile_user)
-        and (not Follow.objects.filter(
-            user=request.user, author=profile_user).exists())):
-        try:
-            Follow.objects.create(user=request.user, author=profile_user)
-        except IntegrityError:
-            return redirect('handler500')
-
+    if (request.user != profile_user):
+        Follow.objects.get_or_create(
+            user=request.user, author=profile_user
+        )
     return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
     profile_user = get_object_or_404(User, username=username)
-    if Follow.objects.filter(user=request.user,
-                             author=profile_user).exists():
-        Follow.objects.get(user=request.user, author=profile_user).delete()
+    Follow.objects.filter(user=request.user, author=profile_user).delete()
     return redirect('profile', username=username)

@@ -1,11 +1,5 @@
-import time
-from typing import ValuesView
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache, caches
-from django.core.cache.backends import locmem
-from django.core.cache.utils import make_template_fragment_key
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -391,6 +385,7 @@ class FollowingRightWorkTest(TestCase):
         follow_obj = Follow.objects.first()
         self.assertEqual(follow_obj.author, FollowingRightWorkTest.author)
         self.assertEqual(follow_obj.user, FollowingRightWorkTest.follower)
+        # Повторная подписка не должна пройти
         client_follower.get(
             reverse(
                 'profile_follow',
@@ -425,78 +420,3 @@ class FollowingRightWorkTest(TestCase):
             author=FollowingRightWorkTest.author,
             user=FollowingRightWorkTest.follower)
         self.assertFalse(follows)
-
-    def test_not_create_double_follow_in_view(self):
-        """Проверка невозможности повторной подписки из view."""
-
-    def test_db_defence_from_double_follow_create(self):
-        """Проверка защиты БД от повторной подписки."""
-
-
-class CacheSubSystemTest(TestCase):
-    """Проверка работы кеширования."""
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cache.clear()
-        cls.author = User.objects.create(
-            username='Автор постов для проверки кеширования'
-        )
-
-    def test_cache_template_index_key(self):
-        """Проверка кеширования в шаблоне "index".
-
-        Методика проверки:
-        - запрос страницы "/", должен построиться кеш.
-        - создание поста, проверка, что он появится на странице "/"
-        не ранее времени, заданного в настройке кеша в шаблоне. (20 сек)
-        """
-
-        # cache1 = caches['user_index_page']
-        # print(cache1)
-        print(locmem._caches)
-        print(cache.get('user_index_page'))
-        print(cache.get('guest_index_page'))
-
-        user = Client()
-        user.force_login(CacheSubSystemTest.author)
-        first_post = Post.objects.create(
-            text='First post',
-            author=CacheSubSystemTest.author
-        )
-        response = user.get('/')
-        # print(locmem._caches['unique-someobject'])
-        dict = locmem._caches['unique-someobject']
-        print(len(dict))
-        for cached in dict:
-            print(cached)
-
-        # print(cache.get(':1:template.cache.user_index_page'))
-        page = response.context['page']
-        self.assertEqual(len(page), 1)
-        self.assertEqual(response.context['page'][0].text, first_post.text)
-
-        second_post = Post.objects.create(
-            text='Second post',
-            author=CacheSubSystemTest.author
-        )
-        for i in range(23):
-            time.sleep(1)
-            print('sleep ', i + 1)
-            response = user.get('/')
-            # page = response.context['page']
-            print(type(response.context))
-            for key, value in response.context:
-                print(key, value)
-
-            # print('response.context', response.context)
-            # page = response.context['page']
-            print('\n after second get', len(page))
-
-        self.assertEqual(response.context['page'][0].text, first_post.text)
-        time.sleep(16)
-        response = user.get('/')
-        page = response.context['page']
-        self.assertEqual(len(page), 2)
-        self.assertEqual(response.context['page'][0].text, second_post.text)

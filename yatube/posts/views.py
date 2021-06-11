@@ -38,7 +38,6 @@ def pagination(request, objects):
     return page
 
 
-@cache_page(15)
 def index(request):
     post_list = Post.objects.all()
     page = pagination(request, post_list)

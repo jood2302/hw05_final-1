@@ -13,7 +13,7 @@
         {% endfor %}
       {% endcache %}
     {% else %}
-      {% cache 3000 guest_index_page anonymous %}
+      {% cache 3000 guest_index_page using key anonymous %}
       {% for post in page %}
           {% include "includes/post_item.html" with post=post %}
         {% endfor %}

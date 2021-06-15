@@ -50,6 +50,7 @@ class Post(models.Model):
         related_name='posts', verbose_name='Подборка записей'
     )
     image = models.ImageField(
+        verbose_name='Файл с изображением',
         upload_to='posts/', blank=True, null=True
     )
 

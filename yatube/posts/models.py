@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db import CheckConstraint
 
 User = get_user_model()
 
@@ -102,7 +103,8 @@ class Follow(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'], name='unique_follow')
+                fields=['user', 'author'], name='unique_follow'),
+            models.CheckConstraint(check=models.Q(user=author), name='notyourself'),
         ]
         ordering = ('author',)
         verbose_name = 'Подписка'

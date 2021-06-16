@@ -1,8 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
 from .models import Comment, Follow, Group, Post
 
 EMPTY_VALUE_DISPLAY = '-пусто-'
+
+User = get_user_model()
 
 
 class PostsInstanceInline(admin.TabularInline):
@@ -18,7 +21,7 @@ class FollowsInstanceInline(admin.TabularInline):
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author', 'group', 'image', 'id')
+    list_display = ('id', 'text', 'pub_date', 'author', 'group', 'image')
     search_fields = ('text', 'author', 'group', 'image')
     list_filter = ('pub_date', 'author', 'group', 'image')
     inlines = [CommentsInstanceInline]
@@ -26,29 +29,22 @@ class PostAdmin(admin.ModelAdmin):
 
 
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'title', 'slug', 'description')
+    list_display = ('id', 'title', 'slug', 'description')
     search_fields = ('title', 'description', 'slug')
     list_filter = ('title',)
     inlines = [PostsInstanceInline]
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'created', 'author', 'post')
+    list_display = ('id', 'text', 'created', 'author', 'post')
     search_fields = ('text', 'author', 'post')
     list_filter = ('created', 'author')
 
 
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'user', 'author')
+    list_display = ('id', 'user', 'author')
     search_fields = ('user', 'author')
     list_filter = ('user', 'author')
-
-
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'username')
-    search_fields = ('user')
-    list_filter = ('user',)
-    inlines = [FollowsInstanceInline]
 
 
 admin.site.register(Post, PostAdmin)

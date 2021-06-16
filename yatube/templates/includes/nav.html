@@ -1,5 +1,3 @@
-{% load cache %}
-{% cache 500 nav %}
 <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
   <a class="navbar-brand" href="{% url 'index' %}" title="В начало"><span style="color:red">Ya</span>tube</a>
   <a class="p-2 text-dark" href="{% url 'group_index' %}">Список подборок</a>
@@ -20,4 +18,3 @@
     {% endif %}
   </nav>
 </nav>
-{% endcache %}

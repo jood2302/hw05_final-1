@@ -3,10 +3,10 @@
 {% block header %}Подписки пользователя{% endblock %}
 {% block content %}
   <div class="container">
-    {% include "includes/menu.html" with index=False %}
+    {% include "includes/menu.html" with follow=True %}
     {% for post in page %}
       {% include "includes/post_item.html" with post=post %}
     {% endfor %}
-  </div>
-  {% include "includes/paginator.html" with items=page %}
+    {% include "includes/paginator.html" with items=page %}
+  </div>  
 {% endblock %} 

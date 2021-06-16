@@ -5,22 +5,10 @@
 
   <div class="container">
     {% include "includes/menu.html" with index=True %}    
-    {% load cache %}
-    {% if request.user.is_authenticated %}
-      {% cache 20 user_index_page using key page_number %}
-        {% for post in page %}
-          {% include "includes/post_item.html" with post=post %}
-        {% endfor %}
-      {% endcache %}
-    {% else %}
-      {% cache 3000 guest_index_page using key anonymous %}
-      {% for post in page %}
-          {% include "includes/post_item.html" with post=post %}
-        {% endfor %}
-      {% endcache %}
-    {% endif %}
-  </div>
-  
-  {% include "includes/paginator.html" with items=page %}
+    {% for post in page %}
+      {% include "includes/post_item.html" with post=post %}
+    {% endfor %}
+    {% include "includes/paginator.html" with items=page %}
+  </div>  
 
 {% endblock %}

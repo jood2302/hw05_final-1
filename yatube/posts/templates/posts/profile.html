@@ -47,8 +47,9 @@
         {% for post in page %}
           {% include "includes/post_item.html" with post=post %}
         {% endfor %}
+        {% include "includes/paginator.html" with items=page %}
       </div>
-      {% include "includes/paginator.html" with items=page %}
+      
     </div>
   </div>
 {% endblock %}

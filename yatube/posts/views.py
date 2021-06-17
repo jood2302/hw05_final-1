@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post, User
@@ -95,13 +96,14 @@ def profile(request, username):
                    'page': page, 'following': follow_flag})
 
 
-def post_view(request, username, post_id):
+def post_view(request, username, post_id, anchor=None):
     post = get_object_or_404(Post, author__username=username, id=post_id)
     form = CommentForm(None)
     return render(request, 'posts/post.html',
                   {'post': post,
                    'form': form,
-                   'comments': post.comments.all()})
+                   'comments': post.comments.all(),
+                   'anchor': anchor})
 
 
 @login_required
@@ -131,6 +133,11 @@ def add_comment(request, username, post_id):
         new_comment.author = request.user
         new_comment.post = post
         new_comment.save()
+        comment_anchor = f'#comment_{new_comment.id}'
+        post_reverse = reverse('post', args=(post.author.username, post.id))
+        post_with_anchor = f'{post_reverse}{comment_anchor}'
+        return redirect(post_with_anchor, username=post.author.username,
+                        post_id=post.id)
     return redirect('post', username=post.author.username,
                     post_id=post.id)
 
